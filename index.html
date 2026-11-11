@@ -1,0 +1,468 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}[hidden]{display:none!important}</style><meta name="theme-color" content="#1c7658"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="پلنر"><title>پلنر آزمایش‌های کوچک</title></head><body>
+<title>پلنر آزمایش‌های کوچک</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: one narrow notebook column; a sticky tab strip on top, today's short list first, everything else one tab away. */
+:root{
+  --bg:#eef3f0; --surface:#ffffff; --sunk:#e3ebe6; --fg:#14261f; --muted:#5b6f66; --line:#cfdad4;
+  --accent:#1c7658; --accent-fg:#ffffff; --accent-soft:#d8ece3;
+  --saffron:#b97f00; --saffron-soft:#fbefc9; --rose:#b3364a; --rose-soft:#f8dfe3;
+  --font:"Vazirmatn",Tahoma,"Segoe UI",sans-serif; --r:12px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1513; --surface:#17211e; --sunk:#1f2c28; --fg:#e4eee9; --muted:#93a79e; --line:#2c3b36;
+  --accent:#5fd0a5; --accent-fg:#0b1f18; --accent-soft:#1d3a30;
+  --saffron:#f0c14a; --saffron-soft:#3a3115; --rose:#f08a9a; --rose-soft:#3d1f25; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1513; --surface:#17211e; --sunk:#1f2c28; --fg:#e4eee9; --muted:#93a79e; --line:#2c3b36;
+  --accent:#5fd0a5; --accent-fg:#0b1f18; --accent-soft:#1d3a30;
+  --saffron:#f0c14a; --saffron-soft:#3a3115; --rose:#f08a9a; --rose-soft:#3d1f25; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.75}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+#app{max-width:860px;margin:0 auto;padding-block:0 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1{font-size:22px;font-weight:800;margin:0;text-wrap:balance}
+h2{font-size:17px;font-weight:800;margin:0}
+h3{font-size:15px;font-weight:700;margin:0}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:13px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding-block:10px;border-bottom:1px solid var(--line);scrollbar-width:none}
+nav button{flex:none;border:0;background:transparent;padding:6px 12px;border-radius:999px;color:var(--muted);font-weight:500;white-space:nowrap}
+nav button[aria-current="true"]{background:var(--fg);color:var(--bg);font-weight:700}
+main{display:flex;flex-direction:column;gap:20px;padding-top:20px}
+.head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-end;justify-content:space-between}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.note{background:var(--saffron-soft);border-radius:var(--r);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.note.off{background:var(--sunk)}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.task{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;min-width:0}
+.task.main{border-color:var(--accent)}
+.task.done .ttitle{text-decoration:line-through;color:var(--muted)}
+.chk{flex:none;width:28px;height:28px;border-radius:8px;border:2px solid var(--accent);background:transparent;color:var(--accent-fg);font-weight:800;line-height:1;padding:0}
+.task.done .chk,.chk[aria-pressed="true"]{background:var(--accent)}
+.tbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ttitle{font-weight:700;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:13px;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700}
+.btn.on{background:var(--accent-soft);border-color:var(--accent)}
+.btn.warn{color:var(--rose);border-color:var(--rose-soft)}
+.btn.big{padding:8px 18px;font-size:15px}
+.fixed{display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px dashed var(--line)}
+.fixed:last-child{border-bottom:0}
+.time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;flex:none;min-width:92px}
+.chip{display:inline-block;background:var(--sunk);border-radius:999px;padding:1px 10px;font-size:12.5px}
+.chip.hot{background:var(--rose-soft);color:var(--rose)} .chip.soon{background:var(--saffron-soft);color:var(--saffron)}
+form{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+label{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted);min-width:0}
+label.grow{flex:1 1 200px}
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:0;max-width:100%}
+input[type=number]{width:84px} textarea{width:100%;min-height:92px;resize:vertical}
+.days{display:flex;flex-wrap:wrap;gap:4px}
+.days label{flex-direction:row;align-items:center;gap:4px;background:var(--sunk);border-radius:999px;padding:2px 10px;color:var(--fg)}
+.bar{height:8px;background:var(--sunk);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.week{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.day.today{border-color:var(--accent);border-width:2px} .day.isoff{background:var(--sunk)}
+.day li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
+.day .chk{width:20px;height:20px;border-radius:6px;font-size:12px}
+.day li.done span{text-decoration:line-through;color:var(--muted)}
+.pact{font-size:16px;font-weight:700}
+#timer{position:fixed;inset:auto 0 0 0;z-index:8;background:var(--fg);color:var(--bg);padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:center}
+#timer b{font-size:22px;font-variant-numeric:tabular-nums}
+#timer .btn{background:transparent;color:var(--bg);border-color:var(--muted)}
+#timer .btn.pri{background:var(--accent);color:var(--accent-fg)}
+#modal{position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+#modal .card{max-width:460px;width:100%;max-height:90%;overflow:auto}
+.stat{display:flex;flex-wrap:wrap;gap:8px 24px}
+.stat div{display:flex;flex-direction:column}
+.stat b{font-size:22px;font-variant-numeric:tabular-nums}
+</style>
+
+<div id="app" dir="rtl" lang="fa">
+  <nav id="nav" aria-label="بخش‌ها"></nav>
+  <main id="view"></main>
+</div>
+<div id="timer" dir="rtl" hidden></div>
+<div id="modal" dir="rtl" hidden></div>
+
+<script>
+(function(){
+"use strict";
+var KEY="tiny-planner-v1";
+var DAYS=["شنبه","یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه"];
+var TABS=[["today","امروز"],["week","هفته"],["goals","هدف‌ها"],["pacts","آزمایش‌ها"],["courses","دوره‌ها"],["fixed","کلاس و جلسه"],["deadlines","ددلاین‌ها"],["review","مرور هفتگی"],["settings","تنظیمات"]];
+var AREAS=["درس و دانشگاه","کار و پروژه","یادگیری AI","سلامتی","شخصی"];
+var $=function(id){return document.getElementById(id)};
+var fa=function(n){return String(n).replace(/\d/g,function(d){return "۰۱۲۳۴۵۶۷۸۹"[d]})};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var pad=function(n){return String(n).padStart(2,"0")};
+var iso=function(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+var parse=function(s){var p=s.split("-").map(Number);return new Date(p[0],p[1]-1,p[2],12)};
+var addDays=function(s,n){var d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+var dow=function(s){return (parse(s).getDay()+1)%7};
+var today=function(){return iso(new Date(Date.now()-4*3600e3))}; // روز تا ۴ صبح ادامه دارد
+var weekStart=function(s){return addDays(s,-dow(s))};
+var dfmt; try{dfmt=new Intl.DateTimeFormat("fa-IR-u-ca-persian",{day:"numeric",month:"long"})}catch(e){dfmt=null}
+var dlabel=function(s){return DAYS[dow(s)]+" "+(dfmt?dfmt.format(parse(s)):s)};
+var mins=function(t){var p=String(t||"0:0").split(":").map(Number);return p[0]*60+(p[1]||0)};
+var dur=function(m){m=Math.round(m);return m>=60?fa(Math.floor(m/60))+" ساعت"+(m%60?" و "+fa(m%60)+" دقیقه":""):fa(m)+" دقیقه"};
+var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)};
+var diff=function(a,b){return Math.round((parse(a)-parse(b))/864e5)};
+
+var S, ui={tab:"today",weekOff:0,moved:0,timer:null,sync:"local",confirm:null,ai:false,aiBusy:false,pactDraft:null};
+
+function seed(){
+  var t=today(), s={v:1,updatedAt:0,settings:{focus:150,maxTasks:4,wake:"07:00",sleep:"01:30"},
+    goals:[],tasks:[],pacts:[],courses:[],classes:[],meetings:[],off:[],deadlines:[],reviews:{},energy:{}};
+  return s;
+}
+
+/* ---------- ذخیره‌سازی ---------- */
+var cloudDoc=null, pushT=null;
+function loadLocal(){try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){
+  S.updatedAt=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  if(cloudDoc){clearTimeout(pushT);pushT=setTimeout(pushCloud,900)}
+}
+function pushCloud(){if(!cloudDoc)return;cloudDoc.set({json:JSON.stringify(S),updatedAt:S.updatedAt}).then(function(){setSync("cloud")},function(){setSync("local")})}
+function setSync(v){ui.sync=v;var e=$("sync");if(e)e.textContent=syncText()}
+function syncText(){return ui.sync==="cloud"?"در حساب Claude تو ذخیره می‌شود":"روی همین مرورگر ذخیره می‌شود"}
+function initCloud(){
+  if(!window.claude||!window.claude.use)return;
+  window.claude.use("sample").then(function(f){if(f){ui.ai=f;if(ui.tab==="goals")render()}},function(){});
+  Promise.all([window.claude.use("db"),window.claude.use("user")]).then(function(r){
+    if(!r[0]||!r[1])return;
+    return r[1].id().then(function(id){
+      if(!id)return;
+      cloudDoc=r[0].collection("data/users/"+id).doc("planner");
+      return cloudDoc.get().then(function(snap){
+        var d=snap.exists&&snap.data();
+        if(d&&d.json&&(d.updatedAt||0)>(S.updatedAt||0)){S=normalize(JSON.parse(d.json));ui.moved=replan();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()}
+        else if(S.updatedAt)pushCloud();
+        setSync("cloud");
+      });
+    });
+  }).catch(function(){setSync("local")});
+}
+function normalize(s){var b=seed();Object.keys(b).forEach(function(k){if(s[k]==null)s[k]=k==="settings"?b.settings:(Array.isArray(b[k])?[]:(typeof b[k]==="object"?{}:b[k]))});
+  var cut=addDays(today(),-90);s.tasks=s.tasks.filter(function(t){return !(t.done&&t.doneAt&&t.doneAt<cut)});return s}
+
+/* ---------- برنامه‌ریز ---------- */
+function isOff(d){return S.off.indexOf(d)>=0}
+function fixedOn(d){
+  var w=dow(d),out=[];
+  S.classes.forEach(function(c){if(c.day===w)out.push({title:c.title,start:c.start,end:c.end,kind:"کلاس"})});
+  S.meetings.forEach(function(m){if(m.weekly?m.day===w:m.date===d)out.push({title:m.title,start:m.start,end:m.end,kind:"جلسه"})});
+  return out.sort(function(a,b){return mins(a.start)-mins(b.start)});
+}
+function capacity(d){
+  if(isOff(d))return 0;
+  var awake=(mins(S.settings.sleep)-mins(S.settings.wake)+1440)%1440||960;
+  var fx=fixedOn(d).reduce(function(a,f){return a+Math.max(0,mins(f.end)-mins(f.start))},0);
+  return Math.max(0,Math.min(S.settings.focus,Math.round((awake-fx-240)*0.5)));
+}
+function course(id){return S.courses.filter(function(c){return c.id===id})[0]}
+function replan(){
+  var t0=today(),load={},moved=0;
+  var L=function(d){return load[d]||(load[d]={m:0,n:0,src:{}})};
+  var put=function(t,d){var l=L(d);l.m+=t.min*1.25;l.n++;if(t.src)l.src[t.src]=1;t.date=d};
+  var cd={};var gapOk=function(t,d,c){var g=Math.max(1,Math.floor(7/(c.perWeek||3)));return !(cd[t.src]||[]).some(function(x){return Math.abs(diff(d,x))<g})};var wk={};var wkey=function(t,d){return t.src+"|"+weekStart(d)};
+  var open=S.tasks.filter(function(t){return !t.done});
+  var keep=[],move=[];
+  open.forEach(function(t){
+    if(t.date&&t.date>=t0&&!isOff(t.date)&&!(t.notBefore&&t.date<t.notBefore))keep.push(t);else move.push(t)});
+  keep.forEach(function(t){put(t,t.date);if(t.kind==="course"){wk[wkey(t,t.date)]=(wk[wkey(t,t.date)]||0)+1;(cd[t.src]=cd[t.src]||[]).push(t.date)}});
+  move.sort(function(a,b){return (a.due||"9").localeCompare(b.due||"9")||(a.date||"9").localeCompare(b.date||"9")||((a.seq||0)-(b.seq||0))});
+  move.forEach(function(t){
+    if(t.date&&t.date<t0){moved++;t.moved=(t.moved||0)+1}
+    var d=t.notBefore&&t.notBefore>t0?t.notBefore:t0,c=t.kind==="course"?course(t.src):null,i;
+    for(i=0;i<400;i++,d=addDays(d,1)){
+      var cap=capacity(d),l=L(d);
+      if(cap<=0||l.n>=S.settings.maxTasks)continue;
+      if(l.m>0&&l.m+t.min*1.25>cap)continue;
+      if(t.src&&l.src[t.src])continue;
+      if(c&&((wk[wkey(t,d)]||0)>=(c.perWeek||3)||!gapOk(t,d,c)))continue;
+      break;
+    }
+    put(t,d);if(c){wk[wkey(t,d)]=(wk[wkey(t,d)]||0)+1;(cd[t.src]=cd[t.src]||[]).push(d)}
+  });
+  // ترتیب قدم‌های هر هدف یا دوره حفظ شود
+  var groups={};open.forEach(function(t){if(t.src)(groups[t.src]=groups[t.src]||[]).push(t)});
+  Object.keys(groups).forEach(function(k){var g=groups[k],ds=g.map(function(t){return t.date}).sort();
+    g.sort(function(a,b){return (a.seq||0)-(b.seq||0)}).forEach(function(t,i){t.date=ds[i]})});
+  return moved;
+}
+function change(){replan();save();render()}
+
+/* ---------- نمایش ---------- */
+function srcName(t){
+  if(t.kind==="course"){var c=course(t.src);return c?"دوره":""}
+  var g=S.goals.filter(function(g){return g.id===t.src})[0];return g?g.title:"";
+}
+function taskRow(t,main,actions){
+  var hint=t.moved>=3&&!t.done?' · <span style="color:var(--rose)">'+fa(t.moved)+' بار جابه‌جا شده؛ کوچکش کن یا حذفش کن</span>':"";
+  var sn=srcName(t);
+  return '<li class="task'+(main?" main":"")+(t.done?" done":"")+'"><button class="chk" data-a="toggle" data-id="'+t.id+'" aria-pressed="'+!!t.done+'" aria-label="انجام شد">'+(t.done?"✓":"")+'</button>'+
+    '<div class="tbody"><div class="ttitle">'+esc(t.title)+'</div><div class="meta">'+dur(t.min)+(sn?" · "+esc(sn):"")+hint+'</div>'+
+    (actions&&!t.done?'<div class="row"><button class="btn pri" data-a="start" data-id="'+t.id+'">فقط ۵ دقیقه شروع کن</button><button class="btn" data-a="stuck" data-id="'+t.id+'">گیر کردم</button><button class="btn" data-a="later" data-id="'+t.id+'">بعداً</button><button class="btn warn" data-a="del-task" data-id="'+t.id+'">'+confirmText("del-task"+t.id,"حذف")+'</button></div>':"")+
+    '</div></li>';
+}
+function confirmText(key,label){return ui.confirm===key?"مطمئنی؟":label}
+function dayOptions(n){var o="",d=today(),i;for(i=0;i<(n||120);i++,d=addDays(d,1))o+='<option value="'+d+'">'+esc(dlabel(d))+'</option>';return o}
+function dowOptions(){return DAYS.map(function(n,i){return '<option value="'+i+'">'+n+'</option>'}).join("")}
+function activePacts(d){var w=dow(d);return S.pacts.filter(function(p){return !p.archived&&p.days.indexOf(w)>=0&&d>=p.start&&d<=pactEnd(p)})}
+function pactEnd(p){return addDays(p.start,p.weeks*7-1)}
+function pactStats(p){var t=today(),end=pactEnd(p)<t?pactEnd(p):t,d=p.start,n=0,k=0;
+  for(;d<=end;d=addDays(d,1)){if(p.days.indexOf(dow(d))>=0&&!isOff(d)){n++;if(p.log[d])k++}}return {n:n,k:k}}
+
+function vToday(){
+  var t=today(),off=isOff(t),en=S.energy[t]||"mid";
+  var tasks=S.tasks.filter(function(x){return x.date===t&&!x.done});
+  var done=S.tasks.filter(function(x){return x.done&&x.doneAt===t});
+  var nMain=en==="low"?1:3,main=tasks.slice(0,nMain),rest=tasks.slice(nMain);
+  var fx=fixedOn(t),pacts=off?[]:activePacts(t);
+  var due=S.deadlines.filter(function(d){return !d.done&&diff(d.date,t)<=14}).sort(function(a,b){return a.date.localeCompare(b.date)});
+  var review=S.pacts.filter(function(p){return !p.archived&&pactEnd(p)<t});
+  var h='<div class="head"><div><h1>'+esc(dlabel(t))+'</h1><p class="muted small">'+(off?"امروز آف است. کارها خودشان به روزهای بعد رفتند.":fa(done.length)+" کار تیک خورده · "+fa(tasks.length)+" کار مانده")+'</p></div>'+
+    '<button class="btn'+(off?" on":"")+'" data-a="off" data-d="'+t+'">'+(off?"آف را بردار":"امروز را آف کن")+'</button></div>';
+  if(ui.moved)h+='<div class="note"><span>'+fa(ui.moved)+' کار انجام‌نشده به روزهای بعد منتقل شد. سرزنشی در کار نیست، برنامه خودش را با تو تنظیم کرد.</span><button class="btn" data-a="dismiss">باشه</button></div>';
+  if(review.length)h+='<div class="note"><span>زمان '+fa(review.length)+' آزمایش تمام شده. نتیجه‌اش را ببین و تصمیم بگیر.</span><button class="btn pri" data-a="tab" data-t="pacts">بررسی آزمایش‌ها</button></div>';
+  if(due.length)h+='<div class="row">'+due.map(function(d){var n=diff(d.date,t);return '<span class="chip '+(n<=3?"hot":"soon")+'">'+esc(d.title)+": "+(n<0?fa(-n)+" روز گذشته":n===0?"امروز":fa(n)+" روز دیگر")+'</span>'}).join("")+'</div>';
+  if(!off){
+    h+='<div class="sec"><div class="sechead"><h2>انرژی امروزت چطور است؟</h2></div><div class="row">'+[["low","کم"],["mid","معمولی"],["high","زیاد"]].map(function(e){return '<button class="btn'+(en===e[0]?" on":"")+'" data-a="energy" data-e="'+e[0]+'">'+e[1]+'</button>'}).join("")+'</div>'+
+      (en==="low"?'<p class="muted small">روز کم‌انرژی: فقط یک کار اصلی و نسخه‌ی کوچک آزمایش‌ها. همین کافی است.</p>':"")+'</div>';
+  }
+  if(fx.length)h+='<div class="sec"><h2>ثابت‌های امروز</h2><div class="card">'+fx.map(function(f){return '<div class="fixed"><span class="time">'+fa(f.start)+" تا "+fa(f.end)+'</span><span>'+esc(f.title)+'</span></div>'}).join("")+'</div></div>';
+  if(!off){
+    h+='<div class="sec"><div class="sechead"><h2>'+(en==="low"?"یک کار اصلی امروز":"سه کار اصلی امروز")+'</h2><span class="muted small">ظرفیت امروز: '+dur(capacity(t))+'</span></div>';
+    h+=main.length?'<ul>'+main.map(function(x){return taskRow(x,true,true)}).join("")+'</ul>':'<div class="card"><p>'+(done.length?"کارهای امروز تمام شد. آفرین.":"برای امروز کاری چیده نشده.")+'</p></div>';
+    if(rest.length)h+='<h3 class="muted">اگر جان داشتی</h3><ul>'+rest.map(function(x){return taskRow(x,false,true)}).join("")+'</ul>';
+    h+='<div class="row"><button class="btn" data-a="pull">یک کار دیگر از روزهای بعد بیاور</button></div>';
+    h+='<form data-form="quick"><label class="grow">کار سریع<input name="title" id="q-title" required placeholder="مثلاً: ایمیل به استاد"></label><label>دقیقه<input name="min" id="q-min" type="number" min="5" step="5" value="20"></label><label>کِی<select name="when" id="q-when"><option value="today">امروز</option><option value="auto">خودکار بچین</option></select></label><button class="btn pri big">اضافه کن</button></form></div>';
+    if(pacts.length)h+='<div class="sec"><h2>آزمایش‌های امروز</h2><ul>'+pacts.map(function(p){var v=p.log[t];
+      return '<li class="task"><div class="tbody"><div class="ttitle">'+esc(p.title)+'</div><div class="meta">'+dur(p.min)+" · نسخه‌ی کوچک: "+esc(p.tiny||"۵ دقیقه")+'</div><div class="row"><button class="btn'+(v==="full"?" on":"")+'" data-a="pact" data-id="'+p.id+'" data-v="full">انجام شد</button><button class="btn'+(v==="tiny"?" on":"")+'" data-a="pact" data-id="'+p.id+'" data-v="tiny">نسخه‌ی کوچک را انجام دادم</button></div></div></li>'}).join("")+'</ul></div>';
+  }
+  if(done.length)h+='<div class="sec"><h2>تیک‌خورده‌های امروز</h2><ul>'+done.map(function(x){return taskRow(x)}).join("")+'</ul></div>';
+  return h;
+}
+function vWeek(){
+  var t=today(),ws=addDays(weekStart(t),ui.weekOff*7),h='<div class="head"><h1>هفته‌ی '+esc(dfmt?dfmt.format(parse(ws)):ws)+'</h1><div class="row"><button class="btn" data-a="wk" data-n="-1">هفته‌ی قبل</button><button class="btn" data-a="wk" data-n="0">این هفته</button><button class="btn" data-a="wk" data-n="1">هفته‌ی بعد</button></div></div><div class="week">',i;
+  for(i=0;i<7;i++){var d=addDays(ws,i),off=isOff(d);
+    var ts=S.tasks.filter(function(x){return x.done?x.doneAt===d:x.date===d});
+    h+='<div class="day'+(d===t?" today":"")+(off?" isoff":"")+'"><div class="sechead"><h3>'+esc(dlabel(d))+'</h3>'+(d>=t?'<button class="btn'+(off?" on":"")+'" data-a="off" data-d="'+d+'">'+(off?"آف":"آف کن")+'</button>':"")+'</div>';
+    h+=fixedOn(d).map(function(f){return '<div class="small"><span class="time">'+fa(f.start)+"–"+fa(f.end)+'</span> '+esc(f.title)+'</div>'}).join("");
+    if(!off){var ps=activePacts(d);if(ps.length)h+='<div class="row">'+ps.map(function(p){return '<span class="chip">'+(p.log[d]?"✓ ":"")+esc(p.title)+'</span>'}).join("")+'</div>'}
+    h+=ts.length?'<ul>'+ts.map(function(x){return '<li class="'+(x.done?"done":"")+'"><button class="chk" data-a="toggle" data-id="'+x.id+'" aria-pressed="'+!!x.done+'" aria-label="انجام شد">'+(x.done?"✓":"")+'</button><span>'+esc(x.title)+' <span class="muted">('+dur(x.min)+')</span></span></li>'}).join("")+'</ul>':(off?'<p class="muted small">روز آف</p>':'<p class="muted small">کاری چیده نشده</p>');
+    h+='</div>';
+  }
+  return h+'</div><p class="muted small">هر روزی را آف کنی، کارهایش خودکار بین روزهای بعد پخش می‌شود.</p>';
+}
+function vGoals(){
+  var h='<div class="head"><div><h1>هدف‌ها</h1><p class="muted small">هر هدف به قدم‌های کوچک شکسته می‌شود و قدم‌ها خودکار در روزها چیده می‌شوند. هر روز حداکثر یک قدم از هر هدف.</p></div></div>';
+  h+='<form class="card" data-form="goal"><h2>هدف تازه</h2><label class="grow">عنوان هدف<input name="title" id="g-title" required placeholder="مثلاً: ساخت اولین محصول اتوماسیون"></label>'+
+    '<label>حوزه<select name="area" id="g-area">'+AREAS.map(function(a){return "<option>"+a+"</option>"}).join("")+'</select></label>'+
+    '<label>مهلت (اختیاری)<select name="due" id="g-due"><option value="">ندارد</option>'+dayOptions(180)+'</select></label>'+
+    '<label style="flex:1 1 100%">قدم‌ها، هر خط یک قدم. می‌توانی زمان را بعد از | بنویسی، مثل: نوشتن طرح | ۴۰<textarea name="steps" id="g-steps" placeholder="خالی بگذاری، خودم پنج قدم عمومی می‌سازم که قدم اولش ده دقیقه است."></textarea></label>'+
+    (ui.ai?'<button type="button" class="btn big" data-a="ai-steps">'+(ui.aiBusy?"در حال فکر کردن…":"قدم‌ها را Claude پیشنهاد بدهد")+'</button>':"")+
+    '<button class="btn pri big">هدف را بساز و بچین</button></form>';
+  S.goals.forEach(function(g){
+    var ts=S.tasks.filter(function(x){return x.src===g.id}).sort(function(a,b){return (a.seq||0)-(b.seq||0)}),dn=ts.filter(function(x){return x.done}).length;
+    h+='<div class="card"><div class="sechead"><h2>'+esc(g.title)+'</h2><span class="chip">'+esc(g.area||"")+'</span></div>'+
+      '<div class="bar"><i style="width:'+(ts.length?Math.round(dn/ts.length*100):0)+'%"></i></div><p class="muted small">'+fa(dn)+" از "+fa(ts.length)+" قدم"+(g.due?" · مهلت: "+esc(dlabel(g.due)):"")+'</p>'+
+      '<ul>'+ts.map(function(x){return '<li class="row small"><button class="chk" style="width:20px;height:20px;font-size:12px" data-a="toggle" data-id="'+x.id+'" aria-pressed="'+!!x.done+'" aria-label="انجام شد">'+(x.done?"✓":"")+'</button><span style="flex:1;min-width:0'+(x.done?";text-decoration:line-through":"")+'">'+esc(x.title)+'</span><span class="muted">'+(x.done?"انجام شد":esc(dlabel(x.date)))+'</span></li>'}).join("")+'</ul>'+
+      '<form data-form="step" data-id="'+g.id+'"><label class="grow">قدم تازه<input name="title" id="s-'+g.id+'" required></label><label>دقیقه<input name="min" id="sm-'+g.id+'" type="number" min="5" step="5" value="30"></label><button class="btn">اضافه</button><button type="button" class="btn warn" data-a="del-goal" data-id="'+g.id+'">'+confirmText("del-goal"+g.id,"حذف هدف")+'</button></form></div>';
+  });
+  return h;
+}
+function vPacts(){
+  var t=today(),d=ui.pactDraft||{};
+  var h='<div class="head"><div><h1>آزمایش‌های کوچک</h1><p class="muted small">به‌جای عادتِ «برای همیشه»، یک قرار کوتاه با خودت بگذار: «من این کار را به مدت چند هفته انجام می‌دهم.» آخرش نتیجه را می‌بینی و تصمیم می‌گیری ادامه بدهی، عوضش کنی یا کنارش بگذاری. جا افتادن یک روز شکست نیست، فقط داده است.</p></div></div>';
+  h+='<form class="card" data-form="pact"><h2>آزمایش تازه</h2><label class="grow">من این کار را انجام می‌دهم<input name="title" id="p-title" required value="'+esc(d.title||"")+'" placeholder="مثلاً: ۲۰ دقیقه ویدیوی AI"></label><label>دقیقه<input name="min" id="p-min" type="number" min="1" value="'+(d.min||20)+'"></label><label>به مدت<select name="weeks" id="p-weeks"><option value="1">۱ هفته</option><option value="2" selected>۲ هفته</option><option value="3">۳ هفته</option><option value="4">۴ هفته</option></select></label>'+
+    '<label class="grow">نسخه‌ی کوچک برای روز بد<input name="tiny" id="p-tiny" value="'+esc(d.tiny||"")+'" placeholder="مثلاً: فقط ۵ دقیقه"></label>'+
+    '<div class="days" style="flex:1 1 100%">'+DAYS.map(function(n,i){return '<label><input type="checkbox" name="d" id="p-d'+i+'" value="'+i+'"'+(!d.days||d.days.indexOf(i)>=0?" checked":"")+'>'+n+'</label>'}).join("")+'</div><button class="btn pri big">شروع آزمایش</button></form>';
+  S.pacts.filter(function(p){return !p.archived}).forEach(function(p){
+    var st=pactStats(p),end=pactEnd(p),over=end<t;
+    h+='<div class="card"><p class="pact">'+esc(p.title)+'</p><p class="muted small">'+dur(p.min)+" · "+p.days.map(function(i){return DAYS[i]}).join("، ")+" · "+(over?"تمام شد":"تا "+esc(dlabel(end)))+'</p>'+
+      '<div class="bar"><i style="width:'+(st.n?Math.round(st.k/st.n*100):0)+'%"></i></div><p class="small">'+fa(st.k)+" بار از "+fa(st.n)+" نوبت</p>"+
+      (over?'<p>وقت تصمیم است. این آزمایش چه حسی داشت؟</p>':"")+
+      '<div class="row"><button class="btn'+(over?" pri":"")+'" data-a="pact-persist" data-id="'+p.id+'">ادامه می‌دهم ('+fa(p.weeks)+' هفته‌ی دیگر)</button><button class="btn" data-a="pact-pivot" data-id="'+p.id+'">تغییرش می‌دهم</button><button class="btn warn" data-a="pact-pause" data-id="'+p.id+'">'+confirmText("pact-pause"+p.id,"کنار می‌گذارم")+'</button></div></div>';
+  });
+  var old=S.pacts.filter(function(p){return p.archived});
+  if(old.length)h+='<div class="sec"><h2>آزمایش‌های تمام‌شده</h2><div class="card">'+old.map(function(p){var st=pactStats(p);return '<div class="fixed"><span>'+esc(p.title)+'</span><span class="muted small">'+fa(st.k)+" از "+fa(st.n)+'</span></div>'}).join("")+'</div></div>';
+  return h;
+}
+function vCourses(){
+  var h='<div class="head"><div><h1>دوره‌ها</h1><p class="muted small">اسم دوره، تعداد جلسه و طول هر جلسه را بده. جلسه‌ها در روزهای آزادت چیده می‌شوند. پیشنهاد من: هر دوره ۳ جلسه در هفته و هر روز حداکثر یک جلسه از هر دوره، تا هم پیش برود هم خسته‌ات نکند.</p></div></div>';
+  h+='<form class="card" data-form="course"><h2>دوره‌ی تازه</h2><label class="grow">اسم دوره<input name="title" id="c-title" required></label><label>تعداد جلسه<input name="n" id="c-n" type="number" min="1" max="300" value="10" required></label><label>هر جلسه (دقیقه)<input name="min" id="c-min" type="number" min="5" value="30" required></label><label>جلسه در هفته<input name="pw" id="c-pw" type="number" min="1" max="7" value="3"></label><button class="btn pri big">برنامه‌اش را بچین</button></form>';
+  S.courses.forEach(function(c){
+    var ts=S.tasks.filter(function(x){return x.src===c.id}),dn=ts.filter(function(x){return x.done}).length,pc=ts.length?Math.round(dn/ts.length*100):0;
+    var left=ts.filter(function(x){return !x.done}).sort(function(a,b){return a.seq-b.seq}),last=left.length?left[left.length-1].date:null;
+    h+='<div class="card"><div class="sechead"><h2>'+esc(c.title)+'</h2><b>'+fa(pc)+'٪</b></div><div class="bar"><i style="width:'+pc+'%"></i></div>'+
+      '<p class="muted small">'+fa(dn)+" از "+fa(ts.length)+" جلسه دیده شده · هر جلسه "+dur(c.min)+" · "+fa(c.perWeek)+" جلسه در هفته"+(last?" · با این سرعت تمام می‌شود: "+esc(dlabel(last)):" · تمام شد")+'</p>'+
+      (left.length?'<p class="small">جلسه‌ی بعدی: '+esc(dlabel(left[0].date))+'</p>':"")+
+      '<div class="row">'+(left.length?'<button class="btn pri" data-a="toggle" data-id="'+left[0].id+'">جلسه‌ی '+fa(left[0].seq+1)+' را دیدم</button>':"")+'<button class="btn warn" data-a="del-course" data-id="'+c.id+'">'+confirmText("del-course"+c.id,"حذف دوره")+'</button></div></div>';
+  });
+  if(!S.courses.length)h+='<p class="muted">هنوز دوره‌ای اضافه نکرده‌ای. اولین دوره‌ی AI را همین بالا وارد کن.</p>';
+  return h;
+}
+function vFixed(){
+  var h='<div class="head"><div><h1>کلاس‌ها و جلسه‌ها</h1><p class="muted small">این‌ها زمان‌های ثابت تو هستند. برنامه‌ریز ظرفیت هر روز را بر اساس همین‌ها کم و زیاد می‌کند.</p></div></div>';
+  h+='<div class="sec"><h2>کلاس‌های هفتگی</h2><div class="card">'+(S.classes.slice().sort(function(a,b){return a.day-b.day||mins(a.start)-mins(b.start)}).map(function(c){return '<div class="fixed"><span class="time">'+DAYS[c.day]+" "+fa(c.start)+"–"+fa(c.end)+'</span><span style="flex:1">'+esc(c.title)+'</span><button class="btn warn" data-a="del-class" data-id="'+c.id+'">'+confirmText("del-class"+c.id,"حذف")+'</button></div>'}).join("")||'<p class="muted">کلاسی ثبت نشده.</p>')+'</div>'+
+    '<form data-form="class"><label class="grow">اسم کلاس<input name="title" id="cl-title" required></label><label>روز<select name="day" id="cl-day">'+dowOptions()+'</select></label><label>از<input name="start" id="cl-start" type="time" value="08:00" required></label><label>تا<input name="end" id="cl-end" type="time" value="10:00" required></label><button class="btn pri">اضافه کن</button></form></div>';
+  var t=today(),ms=S.meetings.filter(function(m){return m.weekly||m.date>=t}).sort(function(a,b){return (a.weekly?"0":a.date).localeCompare(b.weekly?"0":b.date)});
+  h+='<div class="sec"><h2>جلسه‌ها</h2><div class="card">'+(ms.map(function(m){return '<div class="fixed"><span class="time">'+(m.weekly?"هر "+DAYS[m.day]:esc(dlabel(m.date)))+" "+fa(m.start)+"–"+fa(m.end)+'</span><span style="flex:1">'+esc(m.title)+'</span><button class="btn warn" data-a="del-meet" data-id="'+m.id+'">'+confirmText("del-meet"+m.id,"حذف")+'</button></div>'}).join("")||'<p class="muted">جلسه‌ای ثبت نشده.</p>')+'</div>'+
+    '<form data-form="meet"><label class="grow">موضوع جلسه<input name="title" id="m-title" required></label><label>روز<select name="date" id="m-date">'+dayOptions(120)+'</select></label><label>تکرار<select name="rep" id="m-rep"><option value="">فقط یک بار</option><option value="w">هر هفته همین روز</option></select></label><label>از<input name="start" id="m-start" type="time" value="10:00" required></label><label>تا<input name="end" id="m-end" type="time" value="11:00" required></label><button class="btn pri">اضافه کن</button></form></div>';
+  return h;
+}
+function vDeadlines(){
+  var t=today(),h='<div class="head"><div><h1>ددلاین‌ها</h1><p class="muted small">امتحان، تحویل پروژه و هر تاریخ مهم. دو هفته مانده به هر کدام، بالای صفحه‌ی امروز دیده می‌شود.</p></div></div>';
+  h+='<form class="card" data-form="deadline"><label class="grow">عنوان<input name="title" id="d-title" required placeholder="مثلاً: تحویل پروژه‌ی درس بازاریابی"></label><label>تاریخ<select name="date" id="d-date">'+dayOptions(240)+'</select></label><button class="btn pri big">اضافه کن</button></form>';
+  var ds=S.deadlines.slice().sort(function(a,b){return a.date.localeCompare(b.date)});
+  h+=ds.length?'<ul>'+ds.map(function(d){var n=diff(d.date,t);return '<li class="task'+(d.done?" done":"")+'"><button class="chk" data-a="dl-toggle" data-id="'+d.id+'" aria-pressed="'+!!d.done+'" aria-label="انجام شد">'+(d.done?"✓":"")+'</button><div class="tbody"><div class="ttitle">'+esc(d.title)+'</div><div class="meta">'+esc(dlabel(d.date))+" · "+(n<0?fa(-n)+" روز گذشته":n===0?"امروز":fa(n)+" روز مانده")+'</div></div><button class="btn warn" data-a="del-dl" data-id="'+d.id+'">'+confirmText("del-dl"+d.id,"حذف")+'</button></li>'}).join("")+'</ul>':'<p class="muted">ددلاینی ثبت نشده.</p>';
+  return h;
+}
+function vReview(){
+  var t=today(),ws=weekStart(t),we=addDays(ws,6),r=S.reviews[ws]||{};
+  var dn=S.tasks.filter(function(x){return x.done&&x.doneAt>=ws&&x.doneAt<=we}).length,pk=0,days={};
+  S.pacts.forEach(function(p){Object.keys(p.log).forEach(function(d){if(d>=ws&&d<=we){pk++;days[d]=1}})});
+  S.tasks.forEach(function(x){if(x.done&&x.doneAt>=ws&&x.doneAt<=we)days[x.doneAt]=1});
+  var h='<div class="head"><div><h1>مرور هفتگی</h1><p class="muted small">ده دقیقه در آخر هفته. سه ستون ساده: چه چیزی خوب بود، چه چیزی خوب نبود، هفته‌ی بعد چه چیزی را امتحان می‌کنم.</p></div></div>';
+  h+='<div class="card"><div class="stat"><div><b>'+fa(dn)+'</b><span class="muted small">کار تیک‌خورده</span></div><div><b>'+fa(pk)+'</b><span class="muted small">نوبت آزمایش</span></div><div><b>'+fa(Object.keys(days).length)+'</b><span class="muted small">روزِ حاضر از ۷</span></div></div><p class="muted small">روزِ حاضر یعنی روزی که حتی یک تیک زده‌ای. زنجیره‌ای در کار نیست که پاره شود.</p></div>';
+  h+='<form class="card" data-form="review"><label style="flex:1 1 100%">مثبت: چه چیزی خوب پیش رفت؟<textarea name="plus" id="r-plus">'+esc(r.plus||"")+'</textarea></label><label style="flex:1 1 100%">منفی: چه چیزی سخت بود یا جواب نداد؟<textarea name="minus" id="r-minus">'+esc(r.minus||"")+'</textarea></label><label style="flex:1 1 100%">بعدی: هفته‌ی بعد چه چیزی را عوض یا امتحان می‌کنم؟<textarea name="next" id="r-next">'+esc(r.next||"")+'</textarea></label><button class="btn pri big">ذخیره‌ی مرور این هفته</button></form>';
+  var past=Object.keys(S.reviews).filter(function(k){return k!==ws}).sort().reverse();
+  past.forEach(function(k){var p=S.reviews[k];h+='<div class="card"><h3>هفته‌ی '+esc(dlabel(k))+'</h3><p class="small"><b>مثبت:</b> '+esc(p.plus)+'</p><p class="small"><b>منفی:</b> '+esc(p.minus)+'</p><p class="small"><b>بعدی:</b> '+esc(p.next)+'</p></div>'});
+  return h;
+}
+function vSettings(){
+  var s=S.settings;
+  return '<div class="head"><h1>تنظیمات</h1></div>'+
+  '<form class="card" data-form="settings"><label>کار متمرکز در روز (دقیقه)<input name="focus" id="st-focus" type="number" min="20" step="10" value="'+s.focus+'"></label><label>حداکثر تعداد کار در روز<input name="max" id="st-max" type="number" min="1" max="10" value="'+s.maxTasks+'"></label><label>بیداری<input name="wake" id="st-wake" type="time" value="'+s.wake+'"></label><label>خواب<input name="sleep" id="st-sleep" type="time" value="'+s.sleep+'"></label><button class="btn pri big">ذخیره و چیدن دوباره</button>'+
+  '<p class="muted small" style="flex:1 1 100%">کار متمرکز جدا از کلاس‌ها و آزمایش‌هاست. زمان هر کار ۲۵٪ بیشتر حساب می‌شود، چون کارها معمولاً بیشتر از تخمین طول می‌کشند. روز تا ساعت ۴ صبح ادامه دارد تا کار شبانه به پای همان روز نوشته شود.</p></form>'+
+  '<div class="card"><h2>پشتیبان</h2><p class="muted small" id="sync">'+syncText()+'</p><div class="row"><button class="btn" data-a="export">نمایش متن پشتیبان</button><button class="btn" data-a="import">برگرداندن از متن</button><button class="btn warn" data-a="reset">'+confirmText("reset","پاک کردن همه چیز و شروع از اول")+'</button></div><textarea id="backup" placeholder="متن پشتیبان اینجا می‌آید. برای برگرداندن، متن را اینجا بچسبان و دکمه‌ی برگرداندن را بزن." dir="ltr"></textarea></div>';
+}
+var VIEWS={today:vToday,week:vWeek,goals:vGoals,pacts:vPacts,courses:vCourses,fixed:vFixed,deadlines:vDeadlines,review:vReview,settings:vSettings};
+function render(){
+  $("nav").innerHTML=TABS.map(function(t){return '<button data-a="tab" data-t="'+t[0]+'" aria-current="'+(ui.tab===t[0])+'">'+t[1]+'</button>'}).join("");
+  $("view").innerHTML=VIEWS[ui.tab]();
+}
+
+/* ---------- تایمر و «گیر کردم» ---------- */
+var tick=null;
+function startTimer(id,m){ui.timer={id:id,end:Date.now()+m*60e3,over:false};clearInterval(tick);tick=setInterval(drawTimer,1000);drawTimer()}
+function drawTimer(){
+  var el=$("timer"),tm=ui.timer;if(!tm){el.hidden=true;clearInterval(tick);return}
+  var t=S.tasks.filter(function(x){return x.id===tm.id})[0];if(!t){ui.timer=null;el.hidden=true;return}
+  var left=Math.max(0,Math.round((tm.end-Date.now())/1000));el.hidden=false;
+  if(left>0)el.innerHTML='<span>'+esc(t.title)+'</span><b>'+fa(pad(Math.floor(left/60))+":"+pad(left%60))+'</b><button class="btn" data-a="t-stop">توقف</button><button class="btn pri" data-a="t-done">تمام شد، تیک بزن</button>';
+  else{clearInterval(tick);el.innerHTML='<span>زمان تمام شد. شروع کردی و این سخت‌ترین بخشش بود.</span><button class="btn pri" data-a="t-more">۲۰ دقیقه‌ی دیگر ادامه می‌دهم</button><button class="btn" data-a="t-done">تمام شد، تیک بزن</button><button class="btn" data-a="t-stop">برای الان کافی است</button>'}
+}
+function stuck(id){
+  var m=$("modal");m.hidden=false;
+  m.innerHTML='<div class="card"><h2>کجای کار گیر کرده؟</h2><p class="muted small">عقب انداختن تنبلی نیست، یک علامت است. ببین کدام یکی است:</p>'+
+  '<div class="sec"><h3>سر: مطمئن نیستم این کار درست یا لازم باشد</h3><p class="small">شاید باید کار را عوض کنی یا اصلاً حذفش کنی.</p><div class="row"><button class="btn" data-a="s-del" data-id="'+id+'">حذفش کن</button></div></div>'+
+  '<div class="sec"><h3>دل: حوصله‌اش را ندارم</h3><p class="small">با یک چیز خوشایند جفتش کن (موسیقی، کافه، یک دوست کنار دستت) و فقط پنج دقیقه شروع کن.</p><div class="row"><button class="btn pri" data-a="s-start" data-id="'+id+'">فقط ۵ دقیقه</button></div></div>'+
+  '<div class="sec"><h3>دست: نمی‌دانم از کجا شروع کنم</h3><p class="small">کار زیادی بزرگ است. یک قدم ده دقیقه‌ای ازش جدا می‌کنم و بقیه را برای بعد می‌گذارم.</p><div class="row"><button class="btn pri" data-a="s-split" data-id="'+id+'">قدم ده دقیقه‌ای بساز</button></div></div>'+
+  '<button class="btn" data-a="s-close">بستن</button></div>';
+}
+
+/* ---------- رویدادها ---------- */
+function task(id){return S.tasks.filter(function(x){return x.id===id})[0]}
+function needConfirm(key){if(ui.confirm===key){ui.confirm=null;return false}ui.confirm=key;render();return true}
+function setDone(t,v){t.done=v;t.doneAt=v?today():null;if(ui.timer&&ui.timer.id===t.id){ui.timer=null;drawTimer()}}
+var ACT={
+  tab:function(d){ui.tab=d.t;ui.confirm=null;render();window.scrollTo(0,0)},
+  dismiss:function(){ui.moved=0;render()},
+  off:function(d){var i=S.off.indexOf(d.d);if(i>=0)S.off.splice(i,1);else S.off.push(d.d);change()},
+  energy:function(d){S.energy[today()]=d.e;save();render()},
+  toggle:function(d){var t=task(d.id);if(!t)return;setDone(t,!t.done);if(!t.done&&!t.date)t.date=today();change()},
+  later:function(d){var t=task(d.id);if(!t)return;t.notBefore=addDays(today(),1);t.date=null;t.moved=(t.moved||0)+1;change()},
+  pull:function(){var t0=today(),c=S.tasks.filter(function(x){return !x.done&&x.date>t0}).sort(function(a,b){return a.date.localeCompare(b.date)||((a.seq||0)-(b.seq||0))})[0];if(c){c.date=t0;c.notBefore=null;save();render()}},
+  start:function(d){startTimer(d.id,5)},
+  stuck:function(d){stuck(d.id)},
+  "del-task":function(d){if(needConfirm("del-task"+d.id))return;S.tasks=S.tasks.filter(function(x){return x.id!==d.id});change()},
+  "t-stop":function(){ui.timer=null;drawTimer()},
+  "t-more":function(){startTimer(ui.timer.id,20)},
+  "t-done":function(){var t=task(ui.timer.id);if(t)setDone(t,true);ui.timer=null;drawTimer();change()},
+  "s-close":function(){$("modal").hidden=true},
+  "s-del":function(d){S.tasks=S.tasks.filter(function(x){return x.id!==d.id});$("modal").hidden=true;change()},
+  "s-start":function(d){$("modal").hidden=true;startTimer(d.id,5)},
+  "s-split":function(d){var t=task(d.id);$("modal").hidden=true;if(!t)return;
+    if(t.min>10){var rest={id:uid(),title:t.title+" (ادامه)",min:t.min-10,src:t.src,kind:t.kind,seq:(t.seq||0)+0.5,date:null,done:false,due:t.due,notBefore:addDays(today(),1)};S.tasks.push(rest)}
+    if(t.min>10){t.title="قدم اول ده دقیقه‌ای: "+t.title;t.min=10}t.moved=0;change();startTimer(t.id,Math.min(10,t.min))},
+  pact:function(d){var p=S.pacts.filter(function(x){return x.id===d.id})[0],t=today();if(!p)return;if(p.log[t]===d.v)delete p.log[t];else p.log[t]=d.v;save();render()},
+  "pact-persist":function(d){var p=S.pacts.filter(function(x){return x.id===d.id})[0];if(!p)return;var t=today();
+    if(pactEnd(p)<t){p.archived=true;S.pacts.push({id:uid(),title:p.title,min:p.min,days:p.days.slice(),tiny:p.tiny,start:t,weeks:p.weeks,log:{}})}else p.weeks+=p.weeks>=2?2:1;save();render()},
+  "pact-pivot":function(d){var p=S.pacts.filter(function(x){return x.id===d.id})[0];if(!p)return;p.archived=true;ui.pactDraft={title:p.title,min:p.min,tiny:p.tiny,days:p.days};save();render();window.scrollTo(0,0);var e=$("p-title");if(e)e.focus()},
+  "pact-pause":function(d){if(needConfirm("pact-pause"+d.id))return;var p=S.pacts.filter(function(x){return x.id===d.id})[0];if(p)p.archived=true;save();render()},
+  "del-goal":function(d){if(needConfirm("del-goal"+d.id))return;S.goals=S.goals.filter(function(g){return g.id!==d.id});S.tasks=S.tasks.filter(function(x){return x.src!==d.id});change()},
+  "del-course":function(d){if(needConfirm("del-course"+d.id))return;S.courses=S.courses.filter(function(g){return g.id!==d.id});S.tasks=S.tasks.filter(function(x){return x.src!==d.id});change()},
+  "del-class":function(d){if(needConfirm("del-class"+d.id))return;S.classes=S.classes.filter(function(g){return g.id!==d.id});change()},
+  "del-meet":function(d){if(needConfirm("del-meet"+d.id))return;S.meetings=S.meetings.filter(function(g){return g.id!==d.id});change()},
+  "del-dl":function(d){if(needConfirm("del-dl"+d.id))return;S.deadlines=S.deadlines.filter(function(g){return g.id!==d.id});save();render()},
+  "dl-toggle":function(d){var x=S.deadlines.filter(function(g){return g.id===d.id})[0];if(x){x.done=!x.done;save();render()}},
+  wk:function(d){ui.weekOff=+d.n?ui.weekOff+ +d.n:0;render()},
+  "export":function(){var b=$("backup");b.value=JSON.stringify(S);b.focus();b.select()},
+  "import":function(){try{var s=JSON.parse($("backup").value);if(!s||!s.tasks)throw 0;S=normalize(s);change()}catch(e){$("backup").value="";$("backup").placeholder="این متن پشتیبان درست نیست. متن کامل را دوباره بچسبان."}},
+  reset:function(){if(needConfirm("reset"))return;S=seed();change()},
+  "ai-steps":function(){
+    var title=$("g-title").value.trim();if(!title||ui.aiBusy||!ui.ai){if(!title)$("g-title").focus();return}
+    var keep={title:title,area:$("g-area").value,due:$("g-due").value};ui.aiBusy=true;render();restore(keep,"");
+    ui.ai.json('این هدف یک نفر است: «'+title+'». آن را به ۴ تا ۷ قدم کوچک، مشخص و قابل انجام بشکن. قدم اول باید حداکثر ۱۰ دقیقه طول بکشد و شروعش آسان باشد. هیچ قدمی بیشتر از ۶۰ دقیقه نباشد. فقط یک آرایه‌ی JSON برگردان به شکل [{"title":"...","min":30}] و عنوان‌ها فارسی باشند.')
+      .then(function(v){var arr=Array.isArray(v)?v:(v&&v.steps)||[];return arr.map(function(s){return String(s.title||"").replace(/[|\n]/g," ")+" | "+(parseInt(s.min,10)||30)}).join("\n")},function(){return ""})
+      .then(function(txt){ui.aiBusy=false;if(ui.tab!=="goals")return;render();restore(keep,txt||"");if(!txt)$("g-steps").placeholder="پیشنهاد گرفتن ممکن نشد. خودت قدم‌ها را بنویس یا خالی بگذار."});
+  }
+};
+function restore(k,steps){$("g-title").value=k.title;$("g-area").value=k.area;$("g-due").value=k.due;if(steps)$("g-steps").value=steps}
+var num=function(v,def){var n=parseInt(String(v).replace(/[۰-۹]/g,function(d){return "۰۱۲۳۴۵۶۷۸۹".indexOf(d)}),10);return n>0?n:def};
+var FORMS={
+  quick:function(f){S.tasks.push({id:uid(),title:f.title,min:num(f.min,20),kind:"task",date:f.when==="today"?today():null,done:false,seq:Date.now()})},
+  goal:function(f){
+    var g={id:uid(),title:f.title,area:f.area,due:f.due||null};S.goals.push(g);
+    var lines=String(f.steps||"").split("\n").map(function(l){return l.trim()}).filter(Boolean).map(function(l){var p=l.split("|");return [p[0].trim(),num(p[1],30)]});
+    if(!lines.length)lines=[["۱۰ دقیقه: بنویس «تمام‌شده» برای این هدف یعنی چه",10],["جمع کردن اطلاعات و منابع لازم",30],["ساختن اولین نسخه، حتی اگر زشت باشد",45],["بازبینی و بهتر کردن",30],["نهایی کردن و تحویل",30]];
+    lines.forEach(function(x,i){S.tasks.push({id:uid(),title:x[0],min:x[1],src:g.id,kind:"goal",seq:i,date:null,done:false,due:g.due})});
+  },
+  step:function(f,el){var id=el.dataset.id,g=S.goals.filter(function(x){return x.id===id})[0],n=S.tasks.filter(function(x){return x.src===id}).length;
+    S.tasks.push({id:uid(),title:f.title,min:num(f.min,30),src:id,kind:"goal",seq:n,date:null,done:false,due:g&&g.due})},
+  pact:function(f,el){var days=[].slice.call(el.querySelectorAll('input[name=d]:checked')).map(function(c){return +c.value});if(!days.length)days=[0,1,2,3,4,5,6];
+    S.pacts.push({id:uid(),title:f.title,min:num(f.min,20),days:days,tiny:f.tiny||"فقط ۵ دقیقه",start:today(),weeks:num(f.weeks,2),log:{}});ui.pactDraft=null},
+  course:function(f){var c={id:uid(),title:f.title,n:Math.min(300,num(f.n,10)),min:num(f.min,30),perWeek:Math.min(7,num(f.pw,3))},i;S.courses.push(c);
+    for(i=0;i<c.n;i++)S.tasks.push({id:uid(),title:c.title+" · جلسه‌ی "+fa(i+1),min:c.min,src:c.id,kind:"course",seq:i,date:null,done:false})},
+  "class":function(f){if(mins(f.end)>mins(f.start))S.classes.push({id:uid(),title:f.title,day:+f.day,start:f.start,end:f.end})},
+  meet:function(f){if(mins(f.end)>mins(f.start))S.meetings.push({id:uid(),title:f.title,weekly:!!f.rep,day:dow(f.date),date:f.date,start:f.start,end:f.end})},
+  deadline:function(f){S.deadlines.push({id:uid(),title:f.title,date:f.date,done:false})},
+  review:function(f){S.reviews[weekStart(today())]={plus:f.plus,minus:f.minus,next:f.next}},
+  settings:function(f){S.settings={focus:num(f.focus,150),maxTasks:num(f.max,4),wake:f.wake||"07:00",sleep:f.sleep||"01:30"}}
+};
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-a]");if(!b)return;
+  var a=b.dataset.a;if(ACT[a]){if(a.indexOf("del-")&&a!=="reset"&&a!=="pact-pause"&&ui.confirm){ui.confirm=null}ACT[a](b.dataset)}
+});
+document.addEventListener("submit",function(e){
+  var el=e.target.closest("form[data-form]");if(!el)return;e.preventDefault();
+  var f={};new FormData(el).forEach(function(v,k){f[k]=typeof v==="string"?v.trim():v});
+  FORMS[el.dataset.form](f,el);change();
+});
+
+/* ---------- شروع ---------- */
+document.documentElement.lang="fa";
+var local=loadLocal();S=local?normalize(local):seed();
+ui.moved=replan();
+try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+render();initCloud();
+setInterval(function(){var t=today();if(t!==ui._day){if(ui._day){ui.moved=replan();save();render()}ui._day=t}},60e3);ui._day=today();
+})();
+</script>
+
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js"))}</script></body></html>
