@@ -1,5 +1,5 @@
 // Keeps the planner working offline. Bump VERSION after every update so devices fetch the new files.
-const VERSION = 'planner-v3';
+const VERSION = 'planner-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './hero-poster.jpg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
